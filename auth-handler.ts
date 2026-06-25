@@ -1,4 +1,4 @@
-// Google OAuth handler for ChartPane, adapted from Cloudflare's official example:
+// Google OAuth handler for Factbase Charts, adapted from Cloudflare's official example:
 // https://github.com/cloudflare/ai/blob/main/demos/remote-mcp-github-oauth/src/github-handler.ts
 
 import type { AuthRequest, OAuthHelpers } from "@cloudflare/workers-oauth-provider";
@@ -21,7 +21,7 @@ export type Props = { userId: string; email: string; name: string };
 
 type Env = {
   OAUTH_PROVIDER: OAuthHelpers;
-  CHARTPANE_OAUTH_KV: KVNamespace;
+  FACTBASE_OAUTH_KV: KVNamespace;
   DB: D1Database;
   GOOGLE_CLIENT_ID: string;
   GOOGLE_CLIENT_SECRET: string;
@@ -38,7 +38,7 @@ app.get("/authorize", async (c) => {
 
   // If client already approved, skip consent dialog
   if (await isClientApproved(c.req.raw, clientId, c.env.COOKIE_ENCRYPTION_KEY)) {
-    const { stateToken } = await createOAuthState(oauthReqInfo, c.env.CHARTPANE_OAUTH_KV);
+    const { stateToken } = await createOAuthState(oauthReqInfo, c.env.FACTBASE_OAUTH_KV);
     const { setCookie } = await bindStateToSession(stateToken);
     return redirectToGoogle(c.req.raw, stateToken, c.env.GOOGLE_CLIENT_ID, {
       "Set-Cookie": setCookie,
@@ -51,9 +51,9 @@ app.get("/authorize", async (c) => {
     client: await c.env.OAUTH_PROVIDER.lookupClient(clientId),
     csrfToken,
     server: {
-      name: "ChartPane",
+      name: "Factbase Charts",
       description:
-        "ChartPane renders Chart.js charts inline in Claude. Sign in with Google to track your chart history.",
+        "Factbase Charts renders Chart.js charts inline in Claude. Sign in with Google to track your chart history.",
     },
     setCookie,
     state: { oauthReqInfo },
@@ -90,7 +90,7 @@ app.post("/authorize", async (c) => {
     );
 
     // Create state and bind to session
-    const { stateToken } = await createOAuthState(state.oauthReqInfo, c.env.CHARTPANE_OAUTH_KV);
+    const { stateToken } = await createOAuthState(state.oauthReqInfo, c.env.FACTBASE_OAUTH_KV);
     const { setCookie: sessionCookie } = await bindStateToSession(stateToken);
 
     const headers = new Headers();
@@ -118,7 +118,7 @@ app.get("/callback", async (c) => {
   let clearSessionCookie: string;
 
   try {
-    const result = await validateOAuthState(c.req.raw, c.env.CHARTPANE_OAUTH_KV);
+    const result = await validateOAuthState(c.req.raw, c.env.FACTBASE_OAUTH_KV);
     oauthReqInfo = result.oauthReqInfo;
     clearSessionCookie = result.clearCookie;
   } catch (error: unknown) {
@@ -226,7 +226,7 @@ function renderSuccessPage(
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ChartPane - Signed In</title>
+  <title>Factbase Charts - Signed In</title>
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
     :root{--blue:#4e79a7;--green:#59a14f;--green-light:#e8f5e4;--bg:#f8fafb;--card:#fff;--text:#1a2433;--text-2:#5a6a7e;--text-3:#8a96a6;--border:#e2e8f0;--sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
@@ -249,7 +249,7 @@ function renderSuccessPage(
       <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
     </div>
     <h1>Welcome, ${safeName}</h1>
-    <p class="sub">You're signed in to <strong>ChartPane</strong>.</p>
+    <p class="sub">You're signed in to <strong>Factbase Charts</strong>.</p>
     <p class="status">You can close this tab and return to <strong>${safeClient}</strong>.</p>
   </div>
   <script>window.location.href=${JSON.stringify(safeRedirect)};</script>

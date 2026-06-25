@@ -146,7 +146,7 @@ function handleResult(result: RenderResult): void {
 
 // Initialize the MCP App
 const app = new App(
-  { name: "ChartPane", version: "1.0.0" },
+  { name: "Factbase Charts", version: "1.0.0" },
   {},
   { autoResize: true },
 );

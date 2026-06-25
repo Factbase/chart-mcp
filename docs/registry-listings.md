@@ -1,16 +1,16 @@
 # Registry Listings
 
-ChartPane is listed on the following MCP registries and directories.
+Factbase Charts is listed on the following MCP registries and directories.
 
 ## Active Listings
 
 | Registry | URL | Status |
 |---|---|---|
-| Official MCP Registry | https://registry.modelcontextprotocol.io/v0.1/servers?search=chartpane | Published |
-| Smithery.ai | https://smithery.ai/servers/ahmadsl/chartpane | Published |
-| mcp.so | https://mcp.so/server/chart-pane/ahmadsl | Published |
+| Official MCP Registry | https://registry.modelcontextprotocol.io/v0.1/servers?search=factbase-charts | Published |
+| Smithery.ai | https://smithery.ai/servers/factbase-org/factbase-charts | Published |
+| mcp.so | https://mcp.so/server/factbase-charts/factbase-org | Published |
 | PulseMCP | https://www.pulsemcp.com | Auto-ingests from official registry |
-| MCPServers.org | https://mcpservers.org/servers/ahmadsl/chartpane | Published |
+| MCPServers.org | https://mcpservers.org/servers/factbase-org/factbase-charts | Published |
 
 ## Pending Review
 

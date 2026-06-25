@@ -365,7 +365,7 @@ export function renderApprovalDialog(
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${clientName} | ChartPane Authorization</title>
+  <title>${clientName} | Factbase Charts Authorization</title>
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
     :root{--blue:#4e79a7;--blue-light:#6a9bc3;--orange:#f28e2b;--bg:#f8fafb;--card:#fff;--text:#1a2433;--text-2:#5a6a7e;--text-3:#8a96a6;--border:#e2e8f0;--mono:"SF Mono",Monaco,"Cascadia Code","Fira Code",monospace;--sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
@@ -416,7 +416,7 @@ export function renderApprovalDialog(
         ${clientUri ? `<div class="client-row"><span class="client-label">Website</span><span class="client-val"><a href="${clientUri}" target="_blank" rel="noopener noreferrer">${clientUri}</a></span></div>` : ""}
         ${redirectUris.length > 0 ? `<div class="client-row"><span class="client-label">Redirect</span><span class="client-val">${redirectUris.map((uri) => `<div>${uri}</div>`).join("")}</span></div>` : ""}
       </div>
-      <p class="note">Approving will redirect you to <strong>Google Sign-In</strong>. <span class="g">ChartPane uses your Google account to identify you.</span></p>
+      <p class="note">Approving will redirect you to <strong>Google Sign-In</strong>. <span class="g">Factbase Charts uses your Google account to identify you.</span></p>
       <form method="post" action="${new URL(request.url).pathname}">
         <input type="hidden" name="state" value="${encodedState}">
         <input type="hidden" name="csrf_token" value="${csrfToken}">

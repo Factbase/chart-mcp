@@ -1,5 +1,5 @@
 {
-  "name": "chartpane",
+  "name": "factbase-charts",
   "main": "worker.ts",
   "compatibility_date": "2026-02-01",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
@@ -13,11 +13,19 @@
   },
   "kv_namespaces": [
     {
-      "binding": "CHARTPANE_OAUTH_KV",
-      "id": "c3d246efec6b4e6ab3bf1fefa16d5da8"
+      "binding": "FACTBASE_OAUTH_KV",
+      "id": "eb2593bfa1f945f2b8973f479006bf3e"
     }
   ],
-  "custom_domains": ["mcp.chartpane.com"],
+  // Custom domain binding. `routes` with `custom_domain: true` is the real
+  // wrangler key (the old `custom_domains` array was ignored by wrangler).
+  // Change the pattern to your domain; `wrangler deploy` provisions it.
+  "routes": [
+    {
+      "pattern": "mcp.factbase.org",
+      "custom_domain": true
+    }
+  ],
   "observability": {
     "logs": {
       "enabled": true,
@@ -28,8 +36,8 @@
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "chartpane-db",
-      "database_id": "652be01f-e3b7-407c-a6fc-42b72ccb1a8a",
+      "database_name": "factbase-charts-db",
+      "database_id": "dde1bf27-e25d-46db-b15f-f31c6b159de3",
       "migrations_dir": "./migrations"
     }
   ]

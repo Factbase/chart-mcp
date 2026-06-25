@@ -1,11 +1,11 @@
 {
-  "name": "chartpane",
+  "name": "factbase-charts",
   "version": "1.0.0",
   "description": "MCP App that renders charts inline in Claude's UI",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ahmadsl/chartpane.git"
+    "url": "https://github.com/factbase-org/factbase-charts.git"
   },
   "type": "module",
   "scripts": {

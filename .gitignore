@@ -6,7 +6,6 @@ logs/
 
 # Internal docs
 .internal/
-landing/CONTENT.md
 
 # AI agent/IDE configs
 .agent/

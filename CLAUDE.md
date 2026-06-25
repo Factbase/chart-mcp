@@ -80,15 +80,15 @@ The server is intentionally thin — it validates input and returns the raw `Cha
 
 ## Deployment (Cloudflare Workers)
 
-- **D1 database** — `DB` binding in `wrangler.jsonc`, database `chartpane-db`. `onLog` in `worker.ts` writes to `requests` table via `ctx.waitUntil()`.
+- **D1 database** — `DB` binding in `wrangler.jsonc`, database `factbase-charts-db`. `onLog` in `worker.ts` writes to `requests` table via `ctx.waitUntil()`.
 - **D1 migrations** — `wrangler d1 migrations create` requires the D1 binding in `wrangler.jsonc` first (will error otherwise).
-- **Local D1 state** — stored in `.wrangler/state/v3/d1/`. Query with `npx wrangler d1 execute chartpane-db --local --command "SELECT * FROM requests"`.
+- **Local D1 state** — stored in `.wrangler/state/v3/d1/`. Query with `npx wrangler d1 execute factbase-charts-db --local --command "SELECT * FROM requests"`.
 - **`createMcpHandler` default route is `/mcp`** — matches `apiRoute: "/mcp"` in OAuthProvider config. Cannot use `"/"` when auth is enabled (prefix matching conflict).
 - **`agents` pins `@modelcontextprotocol/sdk` 1.25.2** — causes duplicate McpServer types. `worker-types.d.ts` bridges the mismatch with a widened declaration.
 - **Workers types** — `@cloudflare/workers-types` via triple-slash in `worker.ts` only. No `types` field in tsconfig (would break Node type auto-discovery for sandbox/tests).
 - **Authentication** — Optional Google OAuth via `@cloudflare/workers-oauth-provider`. Enabled when all three secrets are set: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `COOKIE_ENCRYPTION_KEY`. Without them, Worker falls back to unauthenticated mode. `OAuthProvider` is lazy-initialized (not at module level). See `docs/adr/004-authentication.md`.
-- **CHARTPANE_OAUTH_KV** — KV namespace binding required for auth (tokens, clients, grants). Local state in `.wrangler/state/v3/kv/`.
-- **Custom domain** — `mcp.chartpane.com` routes to this Worker. Configured via Cloudflare dashboard; `custom_domains` in `wrangler.jsonc` is documentation-only (wrangler doesn't use it).
+- **FACTBASE_OAUTH_KV** — KV namespace binding required for auth (tokens, clients, grants). Local state in `.wrangler/state/v3/kv/`.
+- **Custom domain** — `mcp.factbase.org` routes to this Worker. Configured via Cloudflare dashboard; `custom_domains` in `wrangler.jsonc` is documentation-only (wrangler doesn't use it).
 - **Relogin** — `./scripts/relogin.sh` clears `~/.mcp-auth/mcp-remote-*/` to force re-authentication. Restart Claude Desktop after running.
 - **OAuthProvider audience bug** — `@cloudflare/workers-oauth-provider` validates token audience against `protocol://host` (no trailing slash/path), but its own metadata includes the apiRoute path, and `mcp-remote` normalizes URLs via `new URL().href` (adds trailing slash). `normalizeResourceParam()` in `worker.ts` fixes both by stripping to `.origin`. Our well-known handler overrides the library's metadata for the same reason.
 - **`apiRoute` cannot be `"/"`** — OAuthProvider uses prefix matching, so `"/"` catches all paths including `/authorize`, `/token`, `/register`. Must use a sub-path like `"/mcp"`.
@@ -99,13 +99,9 @@ The server is intentionally thin — it validates input and returns the raw `Cha
 
 ## MCP Registry (`server.json`)
 
-- **Published** to `registry.modelcontextprotocol.io` as `io.github.ahmadsl/chartpane` (remote-only, no npm package).
+- **Published** to `registry.modelcontextprotocol.io` as `io.github.factbase-org/factbase-charts` (remote-only, no npm package).
 - **`server.json`** at repo root — describes the server for registry discovery. `version` is stamped from git tag at publish time.
 - **`$schema` URL must use `https://static.modelcontextprotocol.io/schemas/YYYY-MM-DD/server.schema.json`** — raw GitHub URLs are rejected by `mcp-publisher`.
 - **CI workflow** (`.github/workflows/publish-mcp.yml`) — triggers on `v*` tags, uses GitHub OIDC auth (no secrets needed), publishes via `mcp-publisher`.
 - **To publish a new version:** `git tag v1.x.x && git push origin v1.x.x`
 - **Validate locally:** `npx ajv-cli validate -s <schema-url> -d server.json --spec=draft7 --strict=false`
-
-## Landing Page (`landing/`)
-
-Self-contained Vite project (own `package.json`) for `chartpane.com` on Cloudflare Pages. Has its own `CLAUDE.md` with full details. Key thing: palette + `buildChartConfig()` are duplicated from `shared/` — update both if either changes.

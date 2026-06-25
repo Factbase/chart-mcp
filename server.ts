@@ -9,7 +9,7 @@ import type { ChartInput, RenderResult } from "./shared/types.js";
 import { validateChartInput, validateDashboardInput } from "./shared/validation.js";
 import { calculateColumns } from "./shared/grid.js";
 
-const RESOURCE_URI = "ui://chartpane/mcp-app.html";
+const RESOURCE_URI = "ui://factbase-charts/mcp-app.html";
 
 export interface ServerOptions {
   htmlLoader: () => Promise<string>;
@@ -36,7 +36,7 @@ function createLogRequest(
 export function createServer(options: ServerOptions): McpServer {
   const logRequest = createLogRequest(options.onLog, options.userId);
   const server = new McpServer({
-    name: "ChartPane",
+    name: "Factbase Charts",
     version: "1.0.0",
   });
 

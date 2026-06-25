@@ -1,8 +1,8 @@
-# ChartPane
+# Factbase Charts
 
 MCP App that renders interactive Chart.js charts inline in Claude's UI. Works with Claude Desktop, ChatGPT, VS Code, Cursor, and any client that supports MCP Apps.
 
-**Live instance:** [mcp.chartpane.com](https://mcp.chartpane.com/mcp)
+**Live instance:** [mcp.factbase.org](https://mcp.factbase.org/mcp)
 
 ## Features
 
@@ -20,10 +20,10 @@ MCP App that renders interactive Chart.js charts inline in Claude's UI. Works wi
 
 ## Quick Start
 
-Add ChartPane to Claude Desktop via **Settings > Connectors > Add custom connector**:
+Add Factbase Charts to Claude Desktop via **Settings > Connectors > Add custom connector**:
 
 ```
-https://mcp.chartpane.com/mcp
+https://mcp.factbase.org/mcp
 ```
 
 Or use `mcp-remote` (requires Node.js):
@@ -31,9 +31,9 @@ Or use `mcp-remote` (requires Node.js):
 ```json
 {
   "mcpServers": {
-    "chartpane": {
+    "factbase-charts": {
       "command": "npx",
-      "args": ["-y", "mcp-remote", "https://mcp.chartpane.com/mcp"]
+      "args": ["-y", "mcp-remote", "https://mcp.factbase.org/mcp"]
     }
   }
 }
@@ -114,7 +114,7 @@ Both charts render side-by-side in a grid layout.
 
 ## Self-Hosting
 
-ChartPane runs on Cloudflare Workers.
+Factbase Charts runs on Cloudflare Workers.
 
 ```bash
 npm install
@@ -134,6 +134,62 @@ npm test           # Run all tests (vitest)
 npm run test:watch # Watch mode
 ```
 
+## Deploy to Cloudflare Workers
+
+Runs as a Cloudflare Worker over **Streamable HTTP** (no stdio). The server is stateless, so no Durable Object is required.
+
+### Connector URL
+
+Register this in Claude.ai (**Settings → Connectors → Add custom connector**) or any MCP client. The path is **`/mcp`** (Streamable HTTP) — there is no `/sse` endpoint:
+
+```
+https://mcp.<your-domain>/mcp      # self-hosted
+https://mcp.factbase.org/mcp       # this deployment
+```
+
+### Custom domain
+
+`wrangler.jsonc` binds the domain via `routes` with `custom_domain: true`. Change the `pattern` to your domain before deploying — `wrangler deploy` provisions the custom domain (the zone must already be on your Cloudflare account).
+
+### Secrets
+
+Authentication is **off by default**: with no secrets set, the server runs unauthenticated. All secrets are optional and managed with `wrangler secret` — never bundled.
+
+| Secret | Purpose | Required? |
+|---|---|---|
+| `GOOGLE_CLIENT_ID` | Google OAuth client | Only to enable auth (all 3 together) |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth client secret | Only to enable auth |
+| `COOKIE_ENCRYPTION_KEY` | Signs OAuth consent cookies (base64-encoded 32-byte key) | Only to enable auth |
+| `SENTRY_DSN` | Error monitoring | Optional |
+
+```bash
+wrangler secret put GOOGLE_CLIENT_ID
+wrangler secret put GOOGLE_CLIENT_SECRET
+wrangler secret put COOKIE_ENCRYPTION_KEY
+wrangler secret put SENTRY_DSN
+```
+
+For local development, copy `.dev.vars.example` → `.dev.vars` (git-ignored) instead of using `wrangler secret`.
+
+### Test locally
+
+```bash
+npm install
+wrangler dev                       # http://localhost:8787
+
+# In a second terminal, point the MCP Inspector at the local endpoint:
+npx @modelcontextprotocol/inspector
+#   Transport: Streamable HTTP
+#   URL:       http://localhost:8787/mcp
+```
+
+### Verify and deploy
+
+```bash
+npx wrangler deploy --dry-run      # bundle + validate, no deploy
+npm run deploy                     # wrangler deploy
+```
+
 ## Architecture
 
 Claude tool calls flow through a thin MCP server that validates input and returns `structuredContent`. The browser-side UI transforms input into Chart.js configs and renders to canvas. All shared logic (types, validation, colors, config) lives in `shared/`.
@@ -145,12 +201,12 @@ Claude tool call → server.ts (validate) → structuredContent
 
 ## Privacy
 
-ChartPane logs only request metadata (chart type, title, timestamp). Chart data values are never stored. Charts render entirely client-side in your browser. Full policy: [chartpane.com/privacy](https://chartpane.com/privacy)
+Factbase Charts logs only request metadata (chart type, title, timestamp). Chart data values are never stored. Charts render entirely client-side in your browser. Full policy: [factbase.org/privacy](https://factbase.org/privacy)
 
 ## Support
 
-- GitHub Issues: [github.com/ahmadnassri/chartpane/issues](https://github.com/ahmadnassri/chartpane/issues)
-- Email: [support@chartpane.com](mailto:support@chartpane.com)
+- GitHub Issues: [github.com/factbase-org/factbase-charts/issues](https://github.com/factbase-org/factbase-charts/issues)
+- Email: [support@factbase.org](mailto:support@factbase.org)
 
 ## License
 

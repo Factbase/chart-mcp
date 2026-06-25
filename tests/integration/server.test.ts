@@ -141,7 +141,7 @@ describe("MCP Server", () => {
     const { resources } = await client.listResources();
     expect(resources.length).toBeGreaterThanOrEqual(1);
     const uiResource = resources.find((r) =>
-      r.uri.includes("chartpane"),
+      r.uri.includes("factbase-charts"),
     );
     expect(uiResource).toBeDefined();
   });
