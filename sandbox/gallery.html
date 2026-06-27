@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Factbase Charts — Style Gallery</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f5f5f5;
+      color: #1a2433;
+      padding: 16px;
+    }
+    header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 12px; }
+    h1 { font-size: 20px; }
+    a.nav { font-size: 13px; color: #6652ff; text-decoration: none; }
+    a.nav:hover { text-decoration: underline; }
+    .palette {
+      display: flex; flex-wrap: wrap; gap: 8px;
+      background: #fff; border-radius: 8px; padding: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,.1); margin-bottom: 16px;
+    }
+    .swatch {
+      display: flex; align-items: flex-end; justify-content: center;
+      width: 92px; height: 48px; border-radius: 6px;
+      color: #fff; font-size: 11px; font-family: monospace;
+      padding-bottom: 4px; text-shadow: 0 1px 2px rgba(0,0,0,.3);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(440px, 1fr));
+      gap: 16px;
+    }
+    .cell {
+      background: #fff; border: 1px solid #e5e7eb; border-radius: 8px;
+      padding: 12px; box-shadow: 0 1px 3px rgba(0,0,0,.06);
+    }
+    .cell .label {
+      font-size: 12px; font-weight: 600; color: #6b7280;
+      text-transform: uppercase; letter-spacing: .04em; margin-bottom: 6px;
+    }
+    .cw { position: relative; height: 320px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Style Gallery</h1>
+    <a class="nav" href="/sandbox">← fixture sandbox</a>
+  </header>
+  <div class="palette" id="palette"></div>
+  <div class="grid" id="grid"></div>
+
+  <script type="module">
+    import { buildChartConfig } from "../shared/config.ts";
+    import { getColor } from "../shared/colors.ts";
+
+    // Dummy data covering every chart type + the variants that exercise styling.
+    const EXAMPLES = [
+      { type: "bar", title: "Bar", data: { labels: ["Q1","Q2","Q3","Q4"], datasets: [{ label: "Revenue", data: [50,80,120,95] }] } },
+      { type: "bar", title: "Bar — grouped", data: { labels: ["Q1","Q2","Q3","Q4"], datasets: [{ label: "2024", data: [50,80,120,95] }, { label: "2025", data: [40,95,100,130] }] } },
+      { type: "bar", title: "Bar — stacked", stacked: true, data: { labels: ["Q1","Q2","Q3","Q4"], datasets: [{ label: "Salaries", data: [40,42,45,47] }, { label: "Marketing", data: [10,15,12,20] }, { label: "Ops", data: [8,9,9,11] }] } },
+      { type: "bar", title: "Bar — horizontal", horizontal: true, data: { labels: ["North","South","East","West"], datasets: [{ label: "Sales", data: [120,90,75,60] }] } },
+      { type: "line", title: "Line", data: { labels: ["Jan","Feb","Mar","Apr","May","Jun"], datasets: [{ label: "MAU", data: [12,15,18,22,28,35] }] } },
+      { type: "line", title: "Line — multi", data: { labels: ["Jan","Feb","Mar","Apr","May","Jun"], datasets: [{ label: "Web", data: [12,15,18,22,28,35] }, { label: "Mobile", data: [8,11,14,20,26,33] }] } },
+      { type: "area", title: "Area", data: { labels: ["Jan","Feb","Mar","Apr","May","Jun"], datasets: [{ label: "Signups", data: [200,540,910,1430,2100,2950] }] } },
+      { type: "scatter", title: "Scatter", data: { labels: ["Campaigns"], datasets: [{ label: "Campaigns", data: [{x:200,y:18},{x:450,y:34},{x:600,y:40},{x:800,y:55},{x:1100,y:62},{x:1500,y:81}] }] } },
+      { type: "bubble", title: "Bubble", data: { labels: ["Markets"], datasets: [{ label: "Regions", data: [{x:20,y:30,r:15},{x:40,y:10,r:8},{x:60,y:45,r:22},{x:75,y:25,r:12}] }] } },
+      { type: "pie", title: "Pie", data: { labels: ["Chrome","Safari","Firefox","Edge","Other"], datasets: [{ label: "Share", data: [65,19,8,5,3] }] } },
+      { type: "doughnut", title: "Doughnut", data: { labels: ["Free","Pro","Team","Enterprise"], datasets: [{ label: "Users", data: [5000,1800,600,120] }] } },
+      { type: "polarArea", title: "Polar Area", data: { labels: ["Direct","Search","Social","Email","Referral"], datasets: [{ label: "Visits", data: [320,540,210,150,90] }] } },
+      { type: "radar", title: "Radar", data: { labels: ["Speed","Battery","Price","Weight","Screen"], datasets: [{ label: "Model A", data: [8,6,7,9,8] }, { label: "Model B", data: [6,9,8,7,6] }] } },
+    ];
+
+    // Palette strip — the live default colors from shared/colors.ts.
+    const palette = document.getElementById("palette");
+    for (let i = 0; i < 7; i++) {
+      const c = getColor(i);
+      const sw = document.createElement("div");
+      sw.className = "swatch";
+      sw.style.background = c;
+      sw.textContent = c;
+      palette.appendChild(sw);
+    }
+
+    // Render every example through the real buildChartConfig.
+    const grid = document.getElementById("grid");
+    for (const input of EXAMPLES) {
+      const cell = document.createElement("div");
+      cell.className = "cell";
+      const label = document.createElement("div");
+      label.className = "label";
+      label.textContent = `${input.type}${input.stacked ? " · stacked" : ""}${input.horizontal ? " · horizontal" : ""}`;
+      const wrap = document.createElement("div");
+      wrap.className = "cw";
+      const canvas = document.createElement("canvas");
+      wrap.appendChild(canvas);
+      cell.appendChild(label);
+      cell.appendChild(wrap);
+      grid.appendChild(cell);
+      new Chart(canvas, buildChartConfig(input));
+    }
+  </script>
+</body>
+</html>

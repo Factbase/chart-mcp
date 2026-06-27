@@ -62,12 +62,25 @@ async function start() {
     return c.html(transformed);
   });
 
+  // Style gallery — one chart of every type/variant via the real buildChartConfig
+  app.get("/sandbox/gallery", async (c) => {
+    const html = readFileSync(join(__dirname, "gallery.html"), "utf-8");
+    const transformed = await vite.transformIndexHtml(
+      "/sandbox/gallery.html",
+      html,
+    );
+    return c.html(transformed);
+  });
+
   const PORT = 3456;
   const server = serve(
     { fetch: app.fetch, port: PORT },
     () => {
       console.log(
         `Sandbox dev server running at http://localhost:${PORT}/sandbox`,
+      );
+      console.log(
+        `Style gallery at            http://localhost:${PORT}/sandbox/gallery`,
       );
     },
   );

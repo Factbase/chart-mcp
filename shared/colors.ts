@@ -1,18 +1,14 @@
 import type { ChartType, Dataset } from "./types.js";
 
+// GINC Palette — primary #6652ff
 const PALETTE = [
-  "#4e79a7", // steel blue
-  "#f28e2b", // orange
-  "#e15759", // red
-  "#76b7b2", // teal
-  "#59a14f", // green
-  "#edc948", // gold
-  "#b07aa1", // purple
-  "#ff9da7", // pink
-  "#9c755f", // brown
-  "#bab0ac", // gray
-  "#af7aa1", // mauve
-  "#86bcb6", // seafoam
+  "#6652ff", // purple (primary)
+  "#2ec2ff", // light blue
+  "#37c43e", // green
+  "#fdc103", // gold
+  "#fa8205", // orange
+  "#f80315", // red
+  "#9b71e4", // lavender
 ];
 
 export function getColor(index: number): string {

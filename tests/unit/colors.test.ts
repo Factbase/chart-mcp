@@ -3,12 +3,12 @@ import { assignColors, getColor } from "../../shared/colors.js";
 
 describe("getColor", () => {
   it("returns a color string for index 0", () => {
-    expect(getColor(0)).toBe("#4e79a7");
+    expect(getColor(0)).toBe("#6652ff");
   });
 
   it("wraps around at palette length", () => {
-    expect(getColor(12)).toBe(getColor(0));
-    expect(getColor(13)).toBe(getColor(1));
+    expect(getColor(7)).toBe(getColor(0));
+    expect(getColor(8)).toBe(getColor(1));
   });
 });
 
@@ -49,25 +49,25 @@ describe("assignColors", () => {
     expect(colors[0]).toHaveLength(2);
   });
 
-  it("returns distinct colors for up to 12 datasets", () => {
-    const datasets = Array.from({ length: 12 }, (_, i) => ({
+  it("returns distinct colors for up to 7 datasets", () => {
+    const datasets = Array.from({ length: 7 }, (_, i) => ({
       label: `DS${i}`,
       data: [i],
     }));
     const colors = assignColors("line", datasets);
     const flat = colors.map((c) => c[0]);
     const unique = new Set(flat);
-    expect(unique.size).toBe(12);
+    expect(unique.size).toBe(7);
   });
 
-  it("wraps around for 13+ datasets", () => {
+  it("wraps around past the palette length", () => {
     const datasets = Array.from({ length: 14 }, (_, i) => ({
       label: `DS${i}`,
       data: [i],
     }));
     const colors = assignColors("bar", datasets);
-    expect(colors[12][0]).toBe(colors[0][0]);
-    expect(colors[13][0]).toBe(colors[1][0]);
+    expect(colors[7][0]).toBe(colors[0][0]);
+    expect(colors[8][0]).toBe(colors[1][0]);
   });
 
   it("uses dataset color when provided", () => {

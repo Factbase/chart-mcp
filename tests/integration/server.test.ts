@@ -145,6 +145,23 @@ describe("MCP Server", () => {
     );
     expect(uiResource).toBeDefined();
   });
+
+  it("lists the chart_examples prompt", async () => {
+    const { prompts } = await client.listPrompts();
+    const names = prompts.map((p) => p.name);
+    expect(names).toContain("chart_examples");
+  });
+
+  it("chart_examples prompt returns a user message referencing both tools", async () => {
+    const result = await client.getPrompt({ name: "chart_examples" });
+    expect(result.messages.length).toBeGreaterThanOrEqual(1);
+    const msg = result.messages[0];
+    expect(msg.role).toBe("user");
+    const text = (msg.content as any).text as string;
+    expect(text).toContain("render_chart");
+    expect(text).toContain("render_dashboard");
+    expect(text).toContain("Quarterly Revenue");
+  });
 });
 
 describe("MCP Server with userId", () => {

@@ -21,7 +21,7 @@ npx vitest run -t "scatter"
 
 ## Architecture
 
-MCP App that renders Chart.js charts inline in Claude's UI. Two tools: `render_chart` (single chart) and `render_dashboard` (multi-chart grid).
+MCP App that renders Chart.js charts inline in Claude's UI. Two tools — `render_chart` (single chart) and `render_dashboard` (multi-chart grid) — plus a `chart_examples` prompt that asks the host model to render a showcase gallery via those tools.
 
 ### Data Flow
 

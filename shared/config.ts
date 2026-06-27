@@ -10,6 +10,9 @@ export function hexAlpha(hex: string, alpha: number): string {
   return `rgba(${r},${g},${b},${alpha})`;
 }
 
+const GRID_COLOR = "#e5e7eb"; // light grey — horizontal gridlines
+const AXIS_COLOR = "#4b5563"; // dark grey — axis line + tick labels
+
 export function buildChartConfig(input: ChartInput): ChartConfiguration {
   const { type, title, data, stacked, horizontal } = input;
 
@@ -24,6 +27,7 @@ export function buildChartConfig(input: ChartInput): ChartConfiguration {
   const datasets = data.datasets.map((ds, i) => {
     const colors = colorSets[i];
     const isPieOrDoughnut = type === "pie" || type === "doughnut" || type === "polarArea";
+    const isLineLike = type === "line" || type === "area";
 
     return {
       label: ds.label,
@@ -33,7 +37,9 @@ export function buildChartConfig(input: ChartInput): ChartConfiguration {
         ? colors
         : isRadar
           ? hexAlpha(colors[0], 0.15)
-          : colors[0],
+          : type === "area"
+            ? hexAlpha(colors[0], 0.2) // lighter fill under the line
+            : colors[0],
       borderColor: isPieOrDoughnut ? colors : colors[0],
       // Radar: thin outlines, subtle fill, small points
       ...(isRadar
@@ -41,9 +47,9 @@ export function buildChartConfig(input: ChartInput): ChartConfiguration {
         : {}),
       // Area chart: fill under the line
       ...(type === "area" ? { fill: true } : {}),
-      // Line/area: smooth curves
-      ...(type === "line" || type === "area"
-        ? { tension: 0.3 }
+      // Line/area: smooth curves; hide data-point dots until hover
+      ...(isLineLike
+        ? { tension: 0.3, pointRadius: 0, pointHoverRadius: 4 }
         : {}),
     };
   });
@@ -51,16 +57,36 @@ export function buildChartConfig(input: ChartInput): ChartConfiguration {
   // Build scales (not applicable for pie/doughnut/radar)
   const noScales =
     type === "pie" || type === "doughnut" || type === "polarArea" || type === "radar";
+  // Bar/line/area: show only horizontal gridlines (hide the vertical x gridlines).
+  const horizontalGridOnly = type === "bar" || type === "line" || type === "area";
+  // Axis spine (border line) visibility per type:
+  //  - vertical bar / area → hide the vertical (y) axis line
+  //  - horizontal bar      → hide the horizontal (x) axis line
+  //  - scatter / bubble    → hide both axis lines
+  const isHorizontalBar = type === "bar" && !!horizontal;
+  const noAxisLines = type === "scatter" || type === "bubble";
+  const xBorderDisplay = !(isHorizontalBar || noAxisLines);
+  const yBorderDisplay = !(
+    (type === "bar" && !horizontal) || type === "area" || noAxisLines
+  );
   const scales = noScales
     ? undefined
     : {
         x: {
           ...(stacked ? { stacked: true } : {}),
           ...(type === "scatter" || type === "bubble" ? { type: "linear" as const } : {}),
+          // Vertical gridlines off for bar/line/area; light grey elsewhere.
+          grid: { display: !horizontalGridOnly, color: GRID_COLOR },
+          border: { display: xBorderDisplay, color: AXIS_COLOR },
+          ticks: { color: AXIS_COLOR },
         },
         y: {
           ...(stacked ? { stacked: true } : {}),
           ...(type === "bar" ? { beginAtZero: true } : {}),
+          // Light grey horizontal gridlines.
+          grid: { color: GRID_COLOR },
+          border: { display: yBorderDisplay, color: AXIS_COLOR },
+          ticks: { color: AXIS_COLOR },
         },
       };
 
@@ -77,8 +103,15 @@ export function buildChartConfig(input: ChartInput): ChartConfiguration {
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      // No animations anywhere.
+      animation: false,
       // Horizontal bar
       ...(horizontal ? { indexAxis: "y" as const } : {}),
+      // Always surface a tooltip on hover, even when not exactly over a point.
+      interaction: {
+        mode: (horizontalGridOnly ? "index" : "nearest") as "index" | "nearest",
+        intersect: false,
+      },
       plugins: {
         title: {
           display: true,
@@ -86,6 +119,16 @@ export function buildChartConfig(input: ChartInput): ChartConfiguration {
         },
         legend: {
           display: showLegend,
+          // Square, slightly-rounded color swatch before each label.
+          labels: {
+            boxWidth: 12,
+            boxHeight: 12,
+            useBorderRadius: true,
+            borderRadius: 3,
+          },
+        },
+        tooltip: {
+          enabled: true,
         },
       },
       ...(scales ? { scales } : {}),

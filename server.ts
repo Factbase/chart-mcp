@@ -11,6 +11,115 @@ import { calculateColumns } from "./shared/grid.js";
 
 const RESOURCE_URI = "ui://factbase-charts/mcp-app.html";
 
+// Example payloads surfaced by the `chart_examples` prompt (a showcase gallery).
+const EXAMPLE_CHARTS: unknown[] = [
+  {
+    type: "bar",
+    title: "Quarterly Revenue",
+    data: {
+      labels: ["Q1", "Q2", "Q3", "Q4"],
+      datasets: [{ label: "Revenue ($k)", data: [50, 80, 120, 95] }],
+    },
+  },
+  {
+    type: "line",
+    title: "Monthly Active Users",
+    data: {
+      labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+      datasets: [{ label: "MAU", data: [12000, 15000, 18000, 22000, 28000, 35000] }],
+    },
+  },
+  {
+    type: "pie",
+    title: "Browser Market Share",
+    data: {
+      labels: ["Chrome", "Safari", "Firefox", "Edge", "Other"],
+      datasets: [{ label: "Share", data: [65, 19, 8, 5, 3] }],
+    },
+  },
+  {
+    type: "radar",
+    title: "Laptop Comparison",
+    data: {
+      labels: ["Speed", "Battery", "Price", "Weight", "Screen"],
+      datasets: [
+        { label: "Model A", data: [8, 6, 7, 9, 8] },
+        { label: "Model B", data: [6, 9, 8, 7, 6] },
+      ],
+    },
+  },
+  {
+    type: "scatter",
+    title: "Ad Spend vs Signups",
+    data: {
+      labels: ["Campaigns"],
+      datasets: [
+        {
+          label: "Campaigns",
+          data: [
+            { x: 200, y: 18 }, { x: 450, y: 34 }, { x: 600, y: 40 },
+            { x: 800, y: 55 }, { x: 1100, y: 62 }, { x: 1500, y: 81 },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    type: "bubble",
+    title: "Markets: size vs growth",
+    data: {
+      labels: ["Markets"],
+      datasets: [
+        {
+          label: "Regions",
+          data: [
+            { x: 20, y: 30, r: 15 }, { x: 40, y: 10, r: 8 }, { x: 60, y: 45, r: 22 },
+          ],
+        },
+      ],
+    },
+  },
+];
+
+const EXAMPLE_DASHBOARD: unknown = {
+  title: "Growth Dashboard",
+  columns: 2,
+  charts: [
+    {
+      type: "line",
+      title: "Monthly Active Users",
+      data: {
+        labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+        datasets: [{ label: "MAU", data: [12000, 15000, 18000, 22000, 28000, 35000] }],
+      },
+    },
+    {
+      type: "bar",
+      title: "Signups by Channel",
+      data: {
+        labels: ["Organic", "Referral", "Paid", "Social"],
+        datasets: [{ label: "Signups", data: [4500, 3200, 2800, 1500] }],
+      },
+    },
+    {
+      type: "pie",
+      title: "Revenue by Region",
+      data: {
+        labels: ["NA", "EU", "APAC", "LATAM"],
+        datasets: [{ label: "Revenue", data: [120, 90, 60, 30] }],
+      },
+    },
+    {
+      type: "doughnut",
+      title: "Plan Mix",
+      data: {
+        labels: ["Free", "Pro", "Team", "Enterprise"],
+        datasets: [{ label: "Users", data: [5000, 1800, 600, 120] }],
+      },
+    },
+  ],
+};
+
 export interface ServerOptions {
   htmlLoader: () => Promise<string>;
   onLog?: (entry: Record<string, unknown>) => void;
@@ -179,6 +288,34 @@ export function createServer(options: ServerOptions): McpServer {
             },
           },
         ],
+      };
+    },
+  );
+
+  // Register the `chart_examples` prompt — a user-invokable showcase that asks
+  // the host model to render a gallery of charts via the tools above.
+  server.registerPrompt(
+    "chart_examples",
+    {
+      title: "Chart examples",
+      description:
+        "Render a gallery of example charts and a dashboard to showcase what Factbase Charts can do.",
+    },
+    () => {
+      const lines = EXAMPLE_CHARTS.map(
+        (chart, i) => `${i + 1}. render_chart — ${JSON.stringify(chart)}`,
+      );
+      lines.push(
+        `${EXAMPLE_CHARTS.length + 1}. render_dashboard — ${JSON.stringify(EXAMPLE_DASHBOARD)}`,
+      );
+      const text = [
+        "Show me a gallery of what Factbase Charts can do.",
+        "Render each item below by calling the named tool exactly once with the given input — use render_chart for the charts and render_dashboard for the final one:",
+        "",
+        ...lines,
+      ].join("\n");
+      return {
+        messages: [{ role: "user", content: { type: "text", text } }],
       };
     },
   );
