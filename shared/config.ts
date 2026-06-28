@@ -12,6 +12,7 @@ export function hexAlpha(hex: string, alpha: number): string {
 
 const GRID_COLOR = "#e5e7eb"; // light grey — horizontal gridlines
 const AXIS_COLOR = "#4b5563"; // dark grey — axis line + tick labels
+const LABEL_FONT_SIZE = 10; // px — in-chart label text (ticks, legend, tooltip)
 
 export function buildChartConfig(input: ChartInput): ChartConfiguration {
   const { type, title, data, stacked, horizontal } = input;
@@ -78,7 +79,7 @@ export function buildChartConfig(input: ChartInput): ChartConfiguration {
           // Vertical gridlines off for bar/line/area; light grey elsewhere.
           grid: { display: !horizontalGridOnly, color: GRID_COLOR },
           border: { display: xBorderDisplay, color: AXIS_COLOR },
-          ticks: { color: AXIS_COLOR },
+          ticks: { color: AXIS_COLOR, font: { size: LABEL_FONT_SIZE } },
         },
         y: {
           ...(stacked ? { stacked: true } : {}),
@@ -86,7 +87,7 @@ export function buildChartConfig(input: ChartInput): ChartConfiguration {
           // Light grey horizontal gridlines.
           grid: { color: GRID_COLOR },
           border: { display: yBorderDisplay, color: AXIS_COLOR },
-          ticks: { color: AXIS_COLOR },
+          ticks: { color: AXIS_COLOR, font: { size: LABEL_FONT_SIZE } },
         },
       };
 
@@ -125,16 +126,27 @@ export function buildChartConfig(input: ChartInput): ChartConfiguration {
             boxHeight: 12,
             useBorderRadius: true,
             borderRadius: 3,
+            font: { size: LABEL_FONT_SIZE },
           },
         },
         tooltip: {
           enabled: true,
+          bodyFont: { size: LABEL_FONT_SIZE },
+          titleFont: { size: LABEL_FONT_SIZE },
         },
       },
       ...(scales ? { scales } : {}),
       // Radar: cleaner scale
       ...(isRadar
-        ? { scales: { r: { beginAtZero: true, ticks: { stepSize: 2 } } } }
+        ? {
+            scales: {
+              r: {
+                beginAtZero: true,
+                ticks: { stepSize: 2, font: { size: LABEL_FONT_SIZE } },
+                pointLabels: { font: { size: LABEL_FONT_SIZE } },
+              },
+            },
+          }
         : {}),
     },
   };
