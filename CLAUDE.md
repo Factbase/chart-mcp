@@ -80,6 +80,7 @@ The server is intentionally thin — it validates input and returns the raw `Cha
 
 ## Deployment (Cloudflare Workers)
 
+- **Deploys** — pushing to `main` triggers a Cloudflare Workers Build (Git integration, configured in the Cloudflare dashboard) that runs `npm run build` + `wrangler deploy`. `npm run deploy` still works for manual deploys. Build requires **Node ≥ 20.19** (Vite 7) — pinned in `.nvmrc` (`22`).
 - **D1 database** — `DB` binding in `wrangler.jsonc`, database `factbase-charts-db`. `onLog` in `worker.ts` writes to `requests` table via `ctx.waitUntil()`.
 - **D1 migrations** — `wrangler d1 migrations create` requires the D1 binding in `wrangler.jsonc` first (will error otherwise).
 - **Local D1 state** — stored in `.wrangler/state/v3/d1/`. Query with `npx wrangler d1 execute factbase-charts-db --local --command "SELECT * FROM requests"`.

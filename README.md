@@ -183,11 +183,15 @@ npx @modelcontextprotocol/inspector
 #   URL:       http://localhost:8787/mcp
 ```
 
-### Verify and deploy
+### Deploy
+
+Production deploys run **automatically on push to `main`** via Cloudflare's Git integration (Workers Builds), which runs `npm run build` then `wrangler deploy`. Requires **Node ≥ 20.19** (pinned in `.nvmrc`).
+
+To validate or deploy manually from your machine:
 
 ```bash
 npx wrangler deploy --dry-run      # bundle + validate, no deploy
-npm run deploy                     # wrangler deploy
+npm run deploy                     # manual deploy
 ```
 
 ## Architecture

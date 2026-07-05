@@ -8,6 +8,9 @@
     "url": "https://github.com/factbase-org/factbase-charts.git"
   },
   "type": "module",
+  "engines": {
+    "node": ">=20.19"
+  },
   "scripts": {
     "build": "tsc --noEmit && INPUT=mcp-app.html vite build",
     "start": "concurrently \"wrangler dev\" \"INPUT=mcp-app.html vite build --watch\"",
