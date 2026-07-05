@@ -163,6 +163,31 @@ describe("MCP Server", () => {
     expect(uiResource).toBeDefined();
   });
 
+  it("every tool's declared UI resource URI resolves via resources/read", async () => {
+    const { tools } = await client.listTools();
+    const uris = tools
+      .map(
+        (t) =>
+          (t._meta as any)?.ui?.resourceUri ??
+          (t._meta as any)?.["ui/resourceUri"],
+      )
+      .filter(Boolean) as string[];
+    expect(uris.length).toBeGreaterThan(0);
+    // All tools declare the same stable URI — one source of truth.
+    expect(new Set(uris).size).toBe(1);
+    for (const uri of uris) {
+      const res = await client.readResource({ uri });
+      expect((res.contents[0] as any).text).toContain("test");
+    }
+  });
+
+  it("a stale versioned URI still resolves to the current bundle", async () => {
+    const res = await client.readResource({
+      uri: "ui://factbase-charts/mcp-app.deadbeef-1234-5678.html",
+    });
+    expect((res.contents[0] as any).text).toContain("test");
+  });
+
   it("lists the chart_examples prompt", async () => {
     const { prompts } = await client.listPrompts();
     const names = prompts.map((p) => p.name);

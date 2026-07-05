@@ -1,4 +1,4 @@
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { McpServer, ResourceTemplate } from "@modelcontextprotocol/sdk/server/mcp.js";
 import {
   registerAppTool,
   registerAppResource,
@@ -9,8 +9,12 @@ import type { ChartInput, RenderResult } from "./shared/types.js";
 import { validateChartInput, validateDashboardInput } from "./shared/validation.js";
 import { calculateColumns } from "./shared/grid.js";
 
-// The UI resource URI carries a per-deploy version tag (built in createServer)
-// so hosts that cache the app resource by URI fetch the fresh bundle after a deploy.
+// Single source of truth for the UI resource URI. It MUST be a compile-time
+// constant — identical across every isolate and deploy — because the client
+// caches the tool list (which carries this URI) and later reads the resource by
+// it. A per-process/per-deploy value would drift between the isolate answering
+// tools/list and the one answering resources/read, 404ing the widget.
+const RESOURCE_URI = "ui://factbase-charts/mcp-app.html";
 
 // Example payloads surfaced by the `chart_examples` prompt (a showcase gallery).
 const EXAMPLE_CHARTS: unknown[] = [
@@ -125,8 +129,6 @@ export interface ServerOptions {
   htmlLoader: () => Promise<string>;
   onLog?: (entry: Record<string, unknown>) => void;
   userId?: string;
-  /** Per-deploy tag baked into the UI resource URI to bust host-side caches. */
-  resourceVersion?: string;
 }
 
 function createLogRequest(
@@ -147,8 +149,6 @@ function createLogRequest(
 
 export function createServer(options: ServerOptions): McpServer {
   const logRequest = createLogRequest(options.onLog, options.userId);
-  // Version tag → distinct URI per deploy so caching hosts refetch the bundle.
-  const resourceUri = `ui://factbase-charts/mcp-app.${options.resourceVersion ?? "dev"}.html`;
   const server = new McpServer({
     name: "Factbase Charts",
     version: "1.0.0",
@@ -169,7 +169,7 @@ export function createServer(options: ServerOptions): McpServer {
         idempotentHint: true,
         openWorldHint: false,
       },
-      _meta: { ui: { resourceUri: resourceUri } },
+      _meta: { ui: { resourceUri: RESOURCE_URI } },
     },
     async (args) => {
       const validation = validateChartInput(args);
@@ -229,7 +229,7 @@ export function createServer(options: ServerOptions): McpServer {
         idempotentHint: true,
         openWorldHint: false,
       },
-      _meta: { ui: { resourceUri: resourceUri } },
+      _meta: { ui: { resourceUri: RESOURCE_URI } },
     },
     async (args) => {
       const validation = validateDashboardInput(args);
@@ -272,29 +272,41 @@ export function createServer(options: ServerOptions): McpServer {
     },
   );
 
-  // Register UI resource
+  // Build the UI resource response, serving the CURRENT bundle for whatever URI
+  // was requested (so stale clients holding an older URI still resolve).
+  const readResource = async (uri: string) => {
+    const html = await options.htmlLoader();
+    return {
+      contents: [
+        {
+          uri,
+          mimeType: RESOURCE_MIME_TYPE,
+          text: html,
+          _meta: { ui: { permissions: { clipboardWrite: {} } } },
+        },
+      ],
+    };
+  };
+
+  // Canonical UI resource — the exact URI that tools/list declares.
   registerAppResource(
     server,
-    resourceUri,
-    resourceUri,
+    RESOURCE_URI,
+    RESOURCE_URI,
     { mimeType: RESOURCE_MIME_TYPE },
-    async () => {
-      const html = await options.htmlLoader();
-      return {
-        contents: [
-          {
-            uri: resourceUri,
-            mimeType: RESOURCE_MIME_TYPE,
-            text: html,
-            _meta: {
-              ui: {
-                permissions: { clipboardWrite: {} },
-              },
-            },
-          },
-        ],
-      };
-    },
+    async () => readResource(RESOURCE_URI),
+  );
+
+  // Tolerance: any legacy versioned URI (ui://factbase-charts/mcp-app.<x>.html),
+  // left over from earlier per-deploy URIs, still resolves to the current bundle —
+  // so clients that cached an old URI keep rendering without reconnecting.
+  server.registerResource(
+    "factbase-charts-app-legacy",
+    new ResourceTemplate("ui://factbase-charts/mcp-app.{version}.html", {
+      list: undefined,
+    }),
+    { mimeType: RESOURCE_MIME_TYPE },
+    async (uri) => readResource(uri.href),
   );
 
   // Register the `chart_examples` prompt — a user-invokable showcase that asks
