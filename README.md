@@ -2,7 +2,7 @@
 
 MCP App that renders interactive Chart.js charts inline in Claude's UI. Works with Claude Desktop, ChatGPT, VS Code, Cursor, and any client that supports MCP Apps.
 
-**Live instance:** [mcp.factbase.org](https://mcp.factbase.org/mcp)
+**Live instance:** [charts.factbase.org](https://charts.factbase.org/mcp)
 
 ## Features
 
@@ -23,7 +23,7 @@ MCP App that renders interactive Chart.js charts inline in Claude's UI. Works wi
 Add Factbase Charts to Claude Desktop via **Settings > Connectors > Add custom connector**:
 
 ```
-https://mcp.factbase.org/mcp
+https://charts.factbase.org/mcp
 ```
 
 Or use `mcp-remote` (requires Node.js):
@@ -33,7 +33,7 @@ Or use `mcp-remote` (requires Node.js):
   "mcpServers": {
     "factbase-charts": {
       "command": "npx",
-      "args": ["-y", "mcp-remote", "https://mcp.factbase.org/mcp"]
+      "args": ["-y", "mcp-remote", "https://charts.factbase.org/mcp"]
     }
   }
 }
@@ -144,7 +144,7 @@ Register this in Claude.ai (**Settings → Connectors → Add custom connector**
 
 ```
 https://mcp.<your-domain>/mcp      # self-hosted
-https://mcp.factbase.org/mcp       # this deployment
+https://charts.factbase.org/mcp       # this deployment
 ```
 
 ### Custom domain

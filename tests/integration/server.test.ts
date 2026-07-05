@@ -55,6 +55,23 @@ describe("MCP Server", () => {
     expect(structured.chart.title).toBe("Test Bar");
   });
 
+  it("preserves the insight headline in structuredContent", async () => {
+    const result = await client.callTool({
+      name: "render_chart",
+      arguments: {
+        type: "bar",
+        insight: "Revenue climbed steadily across all four quarters, tripling by year end.",
+        title: "Quarterly Revenue, 2025",
+        data: { labels: ["A"], datasets: [{ label: "V", data: [1] }] },
+      },
+    });
+    const structured = result.structuredContent as any;
+    expect(structured.chart.insight).toBe(
+      "Revenue climbed steadily across all four quarters, tripling by year end.",
+    );
+    expect(structured.chart.title).toBe("Quarterly Revenue, 2025");
+  });
+
   it("render_dashboard returns confirmation text and structuredContent", async () => {
     const result = await client.callTool({
       name: "render_dashboard",

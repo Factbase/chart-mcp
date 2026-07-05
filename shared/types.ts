@@ -37,11 +37,27 @@ export type ChartData = z.infer<typeof ChartDataSchema>;
 
 export const ChartInputSchema = z.object({
   type: ChartTypeSchema,
-  title: z.string(),
+  insight: z
+    .string()
+    .describe(
+      "REQUIRED. Read the actual data values, then write a specific, insightful 10–15 word headline naming the key takeaway — the trend, turning point, extreme, or comparison the numbers show. Do NOT restate the title. Rendered bold above the chart.",
+    )
+    .optional(),
+  title: z
+    .string()
+    .describe(
+      'The formal name of the chart (e.g. "Quarterly Revenue, 2025"). Rendered as a lighter subheading below the insight.',
+    ),
   data: ChartDataSchema,
   stacked: z.boolean().optional(),
   horizontal: z.boolean().optional(),
   colors: z.array(z.string()).optional(),
+  valueSuffix: z
+    .string()
+    .describe(
+      'Unit appended to the value-axis tick labels, e.g. "%" for percentages or "$" for currency. Set to "%" whenever the data are percentages.',
+    )
+    .optional(),
 });
 
 export type ChartInput = z.infer<typeof ChartInputSchema>;

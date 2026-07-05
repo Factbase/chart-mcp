@@ -15,7 +15,7 @@ const AXIS_COLOR = "#4b5563"; // dark grey — axis line + tick labels
 const LABEL_FONT_SIZE = 10; // px — in-chart label text (ticks, legend, tooltip)
 
 export function buildChartConfig(input: ChartInput): ChartConfiguration {
-  const { type, title, data, stacked, horizontal } = input;
+  const { type, title, data, stacked, horizontal, valueSuffix } = input;
 
   // Map our type to Chart.js type
   const chartJsType = type === "area" ? "line" : type;
@@ -60,16 +60,27 @@ export function buildChartConfig(input: ChartInput): ChartConfiguration {
     type === "pie" || type === "doughnut" || type === "polarArea" || type === "radar";
   // Bar/line/area: show only horizontal gridlines (hide the vertical x gridlines).
   const horizontalGridOnly = type === "bar" || type === "line" || type === "area";
-  // Axis spine (border line) visibility per type:
-  //  - vertical bar / area → hide the vertical (y) axis line
-  //  - horizontal bar      → hide the horizontal (x) axis line
-  //  - scatter / bubble    → hide both axis lines
+  // Axis spine (border line) visibility per type — ticks + labels always stay:
+  //  - vertical bar / line / area → hide the vertical (y) axis line
+  //  - horizontal bar             → hide the horizontal (x) axis line
+  //  - scatter / bubble           → hide both axis lines
   const isHorizontalBar = type === "bar" && !!horizontal;
   const noAxisLines = type === "scatter" || type === "bubble";
   const xBorderDisplay = !(isHorizontalBar || noAxisLines);
   const yBorderDisplay = !(
-    (type === "bar" && !horizontal) || type === "area" || noAxisLines
+    (type === "bar" && !horizontal) ||
+    type === "line" ||
+    type === "area" ||
+    noAxisLines
   );
+  // Optional unit suffix on the value axis (e.g. "%" for percentages).
+  const valueTicks = valueSuffix
+    ? {
+        callback(value: number | string) {
+          return `${value}${valueSuffix}`;
+        },
+      }
+    : {};
   const scales = noScales
     ? undefined
     : {
@@ -79,7 +90,8 @@ export function buildChartConfig(input: ChartInput): ChartConfiguration {
           // Vertical gridlines off for bar/line/area; light grey elsewhere.
           grid: { display: !horizontalGridOnly, color: GRID_COLOR },
           border: { display: xBorderDisplay, color: AXIS_COLOR },
-          ticks: { color: AXIS_COLOR, font: { size: LABEL_FONT_SIZE } },
+          // Value-axis unit suffix applies to x only for horizontal bars.
+          ticks: { color: AXIS_COLOR, font: { size: LABEL_FONT_SIZE }, ...(horizontal ? valueTicks : {}) },
         },
         y: {
           ...(stacked ? { stacked: true } : {}),
@@ -87,7 +99,8 @@ export function buildChartConfig(input: ChartInput): ChartConfiguration {
           // Light grey horizontal gridlines.
           grid: { color: GRID_COLOR },
           border: { display: yBorderDisplay, color: AXIS_COLOR },
-          ticks: { color: AXIS_COLOR, font: { size: LABEL_FONT_SIZE } },
+          // Value axis is y unless the bar is horizontal.
+          ticks: { color: AXIS_COLOR, font: { size: LABEL_FONT_SIZE }, ...(horizontal ? {} : valueTicks) },
         },
       };
 
@@ -120,6 +133,7 @@ export function buildChartConfig(input: ChartInput): ChartConfiguration {
         },
         legend: {
           display: showLegend,
+          align: "start" as const,
           // Square, slightly-rounded color swatch before each label.
           labels: {
             boxWidth: 12,
@@ -142,7 +156,7 @@ export function buildChartConfig(input: ChartInput): ChartConfiguration {
             scales: {
               r: {
                 beginAtZero: true,
-                ticks: { stepSize: 2, font: { size: LABEL_FONT_SIZE } },
+                ticks: { stepSize: 2, font: { size: LABEL_FONT_SIZE }, ...valueTicks },
                 pointLabels: { font: { size: LABEL_FONT_SIZE } },
               },
             },

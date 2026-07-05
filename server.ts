@@ -9,7 +9,8 @@ import type { ChartInput, RenderResult } from "./shared/types.js";
 import { validateChartInput, validateDashboardInput } from "./shared/validation.js";
 import { calculateColumns } from "./shared/grid.js";
 
-const RESOURCE_URI = "ui://factbase-charts/mcp-app.html";
+// The UI resource URI carries a per-deploy version tag (built in createServer)
+// so hosts that cache the app resource by URI fetch the fresh bundle after a deploy.
 
 // Example payloads surfaced by the `chart_examples` prompt (a showcase gallery).
 const EXAMPLE_CHARTS: unknown[] = [
@@ -124,6 +125,8 @@ export interface ServerOptions {
   htmlLoader: () => Promise<string>;
   onLog?: (entry: Record<string, unknown>) => void;
   userId?: string;
+  /** Per-deploy tag baked into the UI resource URI to bust host-side caches. */
+  resourceVersion?: string;
 }
 
 function createLogRequest(
@@ -144,6 +147,8 @@ function createLogRequest(
 
 export function createServer(options: ServerOptions): McpServer {
   const logRequest = createLogRequest(options.onLog, options.userId);
+  // Version tag → distinct URI per deploy so caching hosts refetch the bundle.
+  const resourceUri = `ui://factbase-charts/mcp-app.${options.resourceVersion ?? "dev"}.html`;
   const server = new McpServer({
     name: "Factbase Charts",
     version: "1.0.0",
@@ -156,7 +161,7 @@ export function createServer(options: ServerOptions): McpServer {
     {
       title: "Render Chart",
       description:
-        "Renders a single chart inline. Supports bar, line, area, pie, doughnut, polarArea, bubble, scatter, and radar chart types. Provide structured data with labels and datasets. Bubble charts require {x, y, r} data points where r is the bubble radius.",
+        "Renders a single chart inline. Supports bar, line, area, pie, doughnut, polarArea, bubble, scatter, and radar chart types. Provide structured data with labels and datasets. Bubble charts require {x, y, r} data points where r is the bubble radius. `insight` is REQUIRED: read the actual data values and write a specific 10–15 word headline naming the key takeaway (trend, turning point, extreme, or comparison) — not a restatement of the title. `title` is the chart's formal name (shown as a lighter subheading). When the values are percentages, set `valueSuffix` to \"%\" so the axis shows the unit.",
       inputSchema: ChartInputSchema,
       annotations: {
         readOnlyHint: true,
@@ -164,7 +169,7 @@ export function createServer(options: ServerOptions): McpServer {
         idempotentHint: true,
         openWorldHint: false,
       },
-      _meta: { ui: { resourceUri: RESOURCE_URI } },
+      _meta: { ui: { resourceUri: resourceUri } },
     },
     async (args) => {
       const validation = validateChartInput(args);
@@ -216,7 +221,7 @@ export function createServer(options: ServerOptions): McpServer {
     {
       title: "Render Dashboard",
       description:
-        "Renders multiple charts in a grid layout. Each chart can be any supported type (bar, line, area, pie, doughnut, polarArea, bubble, scatter, radar). Optionally specify the number of grid columns.",
+        "Renders multiple charts in a grid layout. Each chart can be any supported type (bar, line, area, pie, doughnut, polarArea, bubble, scatter, radar). Each chart REQUIRES an `insight` (a specific 10–15 word takeaway read from its data, not the title) and a `title` (formal chart name); set `valueSuffix` to \"%\" on any chart whose values are percentages. Optionally specify the number of grid columns.",
       inputSchema: DashboardInputSchema,
       annotations: {
         readOnlyHint: true,
@@ -224,7 +229,7 @@ export function createServer(options: ServerOptions): McpServer {
         idempotentHint: true,
         openWorldHint: false,
       },
-      _meta: { ui: { resourceUri: RESOURCE_URI } },
+      _meta: { ui: { resourceUri: resourceUri } },
     },
     async (args) => {
       const validation = validateDashboardInput(args);
@@ -270,15 +275,15 @@ export function createServer(options: ServerOptions): McpServer {
   // Register UI resource
   registerAppResource(
     server,
-    RESOURCE_URI,
-    RESOURCE_URI,
+    resourceUri,
+    resourceUri,
     { mimeType: RESOURCE_MIME_TYPE },
     async () => {
       const html = await options.htmlLoader();
       return {
         contents: [
           {
-            uri: RESOURCE_URI,
+            uri: resourceUri,
             mimeType: RESOURCE_MIME_TYPE,
             text: html,
             _meta: {

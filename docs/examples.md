@@ -5,8 +5,8 @@ Ready-to-run examples for the two Factbase Charts tools: `render_chart` (single 
 ## How to run them
 
 - **Fastest — the `chart_examples` prompt** — in Claude.ai, open the connector's prompt picker and choose **Chart examples**. It renders the whole gallery (6 charts + a dashboard) in one shot. This prompt is built into the server.
-- **In Claude.ai** — register the connector (**Settings → Connectors → Add custom connector** → `https://mcp.factbase.org/mcp`), then type any prompt below. The chart renders inline.
-- **In MCP Inspector** — `npx @modelcontextprotocol/inspector`, connect to `https://mcp.factbase.org/mcp` (Transport: Streamable HTTP), pick a tool, and paste the JSON into the `arguments` field.
+- **In Claude.ai** — register the connector (**Settings → Connectors → Add custom connector** → `https://charts.factbase.org/mcp`), then type any prompt below. The chart renders inline.
+- **In MCP Inspector** — `npx @modelcontextprotocol/inspector`, connect to `https://charts.factbase.org/mcp` (Transport: Streamable HTTP), pick a tool, and paste the JSON into the `arguments` field.
 - **Via curl** — see [Running with curl](#running-with-curl) at the bottom. curl returns JSON (`content` + `structuredContent`), not a rendered image — rendering only happens in a UI client.
 
 ## Validation rules
@@ -138,7 +138,7 @@ Ready-to-run examples for the two Factbase Charts tools: `render_chart` (single 
 Streamable HTTP requires an `initialize` handshake first, then a `tools/call`. The server is stateless, so no session id is needed:
 
 ```bash
-URL=https://mcp.factbase.org/mcp
+URL=https://charts.factbase.org/mcp
 HDR=(-H "Content-Type: application/json" -H "Accept: application/json, text/event-stream")
 
 curl -sS "$URL" "${HDR[@]}" \

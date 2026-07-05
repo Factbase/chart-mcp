@@ -36,6 +36,7 @@ function createMcpHandler_(env: Env, ctx: ExecutionContext, route: string) {
       );
     },
     userId,
+    resourceVersion: env.CF_VERSION_METADATA?.id,
   });
 
   const instrumentedServer = Sentry.wrapMcpServerWithSentry(server, {

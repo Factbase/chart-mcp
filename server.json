@@ -12,7 +12,7 @@
   },
   "icons": [
     {
-      "src": "https://mcp.factbase.org/favicon.svg",
+      "src": "https://charts.factbase.org/favicon.svg",
       "mimeType": "image/svg+xml",
       "sizes": ["any"]
     }
@@ -20,7 +20,7 @@
   "remotes": [
     {
       "type": "streamable-http",
-      "url": "https://mcp.factbase.org/mcp"
+      "url": "https://charts.factbase.org/mcp"
     }
   ]
 }

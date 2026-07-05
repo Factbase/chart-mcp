@@ -13,31 +13,63 @@
   height: 400px;
   padding: 16px;
   position: relative;
+  overflow: hidden;
+}
+
+/* One chart artifact — fills its container (single view or dashboard cell). */
+.chart-card {
+  position: relative;
+  height: 100%;
   display: flex;
   flex-direction: column;
   overflow: hidden;
 }
 
-.chart-container canvas {
+.chart-canvas-wrap {
+  position: relative;
   flex: 1;
   min-height: 0;
+  z-index: 0;
 }
 
-.chart-toolbar {
+.chart-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  padding-bottom: 8px;
+  gap: 12px;
+  padding-bottom: 10px;
+  position: relative;
+  z-index: 3; /* header, buttons + tooltips paint above the chart canvas */
 }
 
-.chart-toolbar-title {
+.chart-heading {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Bold insight headline (10–15 words) — wraps naturally. */
+.chart-insight {
   font-size: 14px;
   font-weight: var(--font-weight-semibold, 600);
+  line-height: 1.35;
   color: var(--color-text-primary);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  min-width: 0;
+}
+
+/* Non-bold formal chart name, below the insight. */
+.chart-name {
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.3;
+  color: var(--color-text-secondary);
+}
+
+/* Source attribution at the bottom of the chart. */
+.chart-source {
+  padding-top: 8px;
+  font-size: 10px;
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
 }
 
 .chart-toolbar-actions {
@@ -88,6 +120,7 @@
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.15s;
+  z-index: 20;
 }
 
 .chart-toolbar-btn[data-tooltip]:hover::after {
@@ -114,7 +147,7 @@
   padding: 12px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
   min-width: 200px;
-  z-index: 10;
+  z-index: 30;
 }
 
 .color-popover-header {
@@ -271,4 +304,11 @@
   border: 1px solid var(--color-border-secondary, transparent);
   border-radius: var(--border-radius-md, 8px);
   padding: 12px;
+}
+
+/* Source attribution at the bottom of a dashboard. */
+.dashboard-source {
+  padding-top: 12px;
+  font-size: 10px;
+  color: var(--color-text-secondary);
 }
