@@ -58,8 +58,8 @@ export function buildChartConfig(input: ChartInput): ChartConfiguration {
   // Build scales (not applicable for pie/doughnut/radar)
   const noScales =
     type === "pie" || type === "doughnut" || type === "polarArea" || type === "radar";
-  // Bar/line/area: show only horizontal gridlines (hide the vertical x gridlines).
-  const horizontalGridOnly = type === "bar" || type === "line" || type === "area";
+  // Category-axis charts (bar/line/area): index-mode hover + no vertical gridlines.
+  const isCategoryChart = type === "bar" || type === "line" || type === "area";
   // Axis spine (border line) visibility per type — ticks + labels always stay:
   //  - vertical bar / line / area → hide the vertical (y) axis line
   //  - horizontal bar             → hide the horizontal (x) axis line
@@ -88,7 +88,7 @@ export function buildChartConfig(input: ChartInput): ChartConfiguration {
           ...(stacked ? { stacked: true } : {}),
           ...(type === "scatter" || type === "bubble" ? { type: "linear" as const } : {}),
           // Vertical gridlines off for bar/line/area; light grey elsewhere.
-          grid: { display: !horizontalGridOnly, color: GRID_COLOR },
+          grid: { display: !isCategoryChart, color: GRID_COLOR },
           border: { display: xBorderDisplay, color: AXIS_COLOR },
           // Value-axis unit suffix applies to x only for horizontal bars.
           ticks: { color: AXIS_COLOR, font: { size: LABEL_FONT_SIZE }, ...(horizontal ? valueTicks : {}) },
@@ -96,8 +96,8 @@ export function buildChartConfig(input: ChartInput): ChartConfiguration {
         y: {
           ...(stacked ? { stacked: true } : {}),
           ...(type === "bar" ? { beginAtZero: true } : {}),
-          // Light grey horizontal gridlines.
-          grid: { color: GRID_COLOR },
+          // Light grey horizontal gridlines — horizontal bars get none at all.
+          grid: { display: !isHorizontalBar, color: GRID_COLOR },
           border: { display: yBorderDisplay, color: AXIS_COLOR },
           // Value axis is y unless the bar is horizontal.
           ticks: { color: AXIS_COLOR, font: { size: LABEL_FONT_SIZE }, ...(horizontal ? {} : valueTicks) },
@@ -123,8 +123,12 @@ export function buildChartConfig(input: ChartInput): ChartConfiguration {
       ...(horizontal ? { indexAxis: "y" as const } : {}),
       // Always surface a tooltip on hover, even when not exactly over a point.
       interaction: {
-        mode: (horizontalGridOnly ? "index" : "nearest") as "index" | "nearest",
+        mode: (isCategoryChart ? "index" : "nearest") as "index" | "nearest",
         intersect: false,
+        // Index mode measures distance along the index axis — which is y for
+        // horizontal bars. Without this it defaults to x, where every bar shares
+        // the same origin, so hover resolves to the wrong bar.
+        ...(isCategoryChart ? { axis: (horizontal ? "y" : "x") as "x" | "y" } : {}),
       },
       plugins: {
         title: {
