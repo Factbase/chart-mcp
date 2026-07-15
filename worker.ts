@@ -150,22 +150,25 @@ export default Sentry.withSentry(
         );
       }
 
-      // RFC 9728: Protected Resource Metadata — override OAuthProvider's built-in
-      // response because it includes the apiRoute path in `resource`, but its own
-      // token validation checks audience against origin-only (protocol://host).
-      if (
-        path === "/.well-known/oauth-protected-resource" ||
-        path === "/.well-known/oauth-protected-resource/mcp"
-      ) {
-        const origin = new URL(url).origin;
-        return Response.json({
-          resource: origin,
-          authorization_servers: [`${origin}/`],
-          bearer_methods_supported: ["header"],
-        });
-      }
-
       if (isAuthEnabled(env)) {
+        // RFC 9728: Protected Resource Metadata — override OAuthProvider's built-in
+        // response because it includes the apiRoute path in `resource`, but its own
+        // token validation checks audience against origin-only (protocol://host).
+        // Only served when auth is on: advertising an authorization server we don't
+        // run makes clients hunt for /.well-known/oauth-authorization-server, 404,
+        // and fail with empty authorization/token endpoints.
+        if (
+          path === "/.well-known/oauth-protected-resource" ||
+          path === "/.well-known/oauth-protected-resource/mcp"
+        ) {
+          const origin = new URL(url).origin;
+          return Response.json({
+            resource: origin,
+            authorization_servers: [`${origin}/`],
+            bearer_methods_supported: ["header"],
+          });
+        }
+
         oauthProvider ??= createOAuthProvider();
         req = await normalizeResourceParam(req);
         return oauthProvider.fetch(req, env, ctx);
